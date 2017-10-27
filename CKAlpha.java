@@ -38,8 +38,8 @@ public class CKAlpha extends AlphaBot
 		// Replace the next line with any behavior you would like
 		turnGunRight(e.getBearing());
 		fire(5);
-      turnGunRight(e.getBearing() + 10);
-      fire(3);
+        turnGunRight(e.getBearing() + 10);
+        fire(3);
 	}
 
 	/**
