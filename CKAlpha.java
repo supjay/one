@@ -7,7 +7,7 @@ import robocode.*;
 /**
  * CKAlpha - a robot by (your name here)
  */
-public class CKAlpha extends AlphaBot
+public class CKAlpha extends BravoBot
 {
 	/**
 	 * run: CKAlpha's default behavior
@@ -28,6 +28,7 @@ public class CKAlpha extends AlphaBot
 			turnGunRight(360);
 			back(100);
 			turnGunRight(360);
+        
 		}
 	}
 
@@ -38,8 +39,8 @@ public class CKAlpha extends AlphaBot
 		// Replace the next line with any behavior you would like
 		turnGunRight(e.getBearing());
 		fire(5);
-        turnGunRight(e.getBearing() + 10);
-        fire(3);
+      turnGunRight(e.getBearing() + 10);
+      fire(3);
 	}
 
 	/**
