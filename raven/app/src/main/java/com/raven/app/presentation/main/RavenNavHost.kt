@@ -2,10 +2,10 @@ package com.raven.app.presentation.main
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,7 +33,7 @@ fun RavenNavHost(
 ) {
     // Check if first-run AI setup is needed
     val setupViewModel: ModelSetupViewModel = hiltViewModel()
-    val isSetupNeeded by setupViewModel.isSetupNeeded.collectAsStateWithLifecycle(initialValue = false)
+    val isSetupNeeded by setupViewModel.isSetupNeeded.collectAsState(initial = false)
 
     LaunchedEffect(isSetupNeeded) {
         if (isSetupNeeded) {

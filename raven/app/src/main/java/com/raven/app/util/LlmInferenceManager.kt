@@ -46,7 +46,6 @@ class LlmInferenceManager @Inject constructor(
                 .setMaxTokens(1024)
                 .setTopK(40)
                 .setTemperature(0.8f)
-                .setRandomSeed(42)
                 .build()
 
             llmInference = LlmInference.createFromOptions(context, options)
@@ -54,47 +53,6 @@ class LlmInferenceManager @Inject constructor(
             _state.value = LlmState.Ready
         } catch (e: Exception) {
             _state.value = LlmState.Error("Failed to load model: ${e.message}")
-        }
-    }
-
-    /**
-     * Generate a streaming response. Calls [onPartialResult] for each token,
-     * then calls [onDone] with the complete response when finished.
-     * Safe to call from any coroutine context.
-     */
-    suspend fun generateStreaming(
-        prompt: String,
-        onPartialResult: suspend (String) -> Unit,
-        onDone: suspend (fullResponse: String) -> Unit
-    ) = withContext(Dispatchers.IO) {
-        val session = currentSession ?: run {
-            _state.value = LlmState.Error("Session not initialized")
-            return@withContext
-        }
-
-        val fullResponse = StringBuilder()
-
-        // MediaPipe uses a callback-based ProgressListener
-        val resultListener = LlmInference.LlmInferenceOptions.ResultListener { partialResult, isDone ->
-            val cleaned = RavenPromptBuilder.cleanResponse(partialResult)
-            if (cleaned.isNotEmpty()) {
-                fullResponse.append(cleaned)
-                kotlinx.coroutines.runBlocking { onPartialResult(cleaned) }
-            }
-        }
-
-        try {
-            session.generateResponseAsync(prompt, resultListener)
-            // generateResponseAsync is async; we need to wait for completion
-            // The session handles this internally — wait using a simple completion check
-            // Note: in production, use suspendCoroutine or ListenableFuture adapter
-            // For now use the synchronous version for reliability:
-            fullResponse.clear()
-            val syncResult = session.generateResponse(prompt)
-            val cleanResult = RavenPromptBuilder.cleanResponse(syncResult)
-            onDone(cleanResult)
-        } catch (e: Exception) {
-            onDone("I ran into an issue generating a response. Please try again.")
         }
     }
 
