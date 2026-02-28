@@ -21,6 +21,7 @@ sealed class RavenScreen(val route: String, val label: String, val icon: ImageVe
     object AddEditTrip : RavenScreen("travel/add?id={id}", "Add Trip", Icons.Filled.Add)
     object AddEditCommitment : RavenScreen("family/commitment/add?id={id}", "Add Commitment", Icons.Filled.Add)
     object AddFamilyMember : RavenScreen("family/member/add?id={id}", "Add Member", Icons.Filled.PersonAdd)
+    object ModelSetup : RavenScreen("model_setup", "Raven AI Setup", Icons.Filled.AutoAwesome)
 }
 
 val bottomNavItems = listOf(

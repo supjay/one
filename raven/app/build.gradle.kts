@@ -55,6 +55,10 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    aaptOptions {
+        noCompress += "task" // prevent compression of MediaPipe model files
+    }
 }
 
 dependencies {
@@ -95,6 +99,9 @@ dependencies {
 
     // Gson
     implementation(libs.gson)
+
+    // MediaPipe LLM Inference (Gemma on-device)
+    implementation(libs.mediapipe.tasks.genai)
 
     // Testing
     testImplementation(libs.junit)

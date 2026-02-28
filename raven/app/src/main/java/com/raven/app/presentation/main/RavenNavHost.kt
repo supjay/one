@@ -1,7 +1,11 @@
 package com.raven.app.presentation.main
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,6 +20,8 @@ import com.raven.app.presentation.notes.AddEditNoteScreen
 import com.raven.app.presentation.notes.NotesScreen
 import com.raven.app.presentation.reminders.AddEditReminderScreen
 import com.raven.app.presentation.reminders.RemindersScreen
+import com.raven.app.presentation.setup.ModelSetupScreen
+import com.raven.app.presentation.setup.ModelSetupViewModel
 import com.raven.app.presentation.travel.AddEditTripScreen
 import com.raven.app.presentation.travel.TripDetailScreen
 import com.raven.app.presentation.travel.TripsScreen
@@ -25,11 +31,39 @@ fun RavenNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    // Check if first-run AI setup is needed
+    val setupViewModel: ModelSetupViewModel = hiltViewModel()
+    val isSetupNeeded by setupViewModel.isSetupNeeded.collectAsStateWithLifecycle(initialValue = false)
+
+    LaunchedEffect(isSetupNeeded) {
+        if (isSetupNeeded) {
+            navController.navigate(RavenScreen.ModelSetup.route) {
+                launchSingleTop = true
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = RavenScreen.Dashboard.route,
         modifier = modifier
     ) {
+        // AI Model Setup (first-run)
+        composable(RavenScreen.ModelSetup.route) {
+            ModelSetupScreen(
+                onSetupComplete = {
+                    navController.navigate(RavenScreen.Dashboard.route) {
+                        popUpTo(RavenScreen.ModelSetup.route) { inclusive = true }
+                    }
+                },
+                onSkip = {
+                    navController.navigate(RavenScreen.Dashboard.route) {
+                        popUpTo(RavenScreen.ModelSetup.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(RavenScreen.Dashboard.route) {
             DashboardScreen(navController = navController)
         }
