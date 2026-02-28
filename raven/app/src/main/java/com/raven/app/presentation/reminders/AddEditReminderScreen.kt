@@ -15,8 +15,6 @@ import com.raven.app.domain.model.Priority
 import com.raven.app.domain.model.Reminder
 import com.raven.app.domain.model.RepeatMode
 import com.raven.app.presentation.theme.ColorReminders
-import com.raven.app.util.VoiceRecognitionManager
-import com.raven.app.util.VoiceRecognitionState
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,10 +22,7 @@ import java.util.*
 fun AddEditReminderScreen(
     reminderId: Long,
     onNavigateBack: () -> Unit,
-    viewModel: ReminderViewModel = hiltViewModel(),
-    voiceManager: VoiceRecognitionManager = hiltViewModel<ReminderViewModel>().let {
-        androidx.hilt.navigation.compose.hiltViewModel()
-    }
+    viewModel: ReminderViewModel = hiltViewModel()
 ) {
     val isEditing = reminderId > 0
     var title by remember { mutableStateOf("") }
