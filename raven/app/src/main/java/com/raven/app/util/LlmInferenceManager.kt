@@ -32,10 +32,6 @@ class LlmInferenceManager @Inject constructor(
     private var llmInference: LlmInference? = null
     private var currentSession: LlmInferenceSession? = null
 
-    /**
-     * Initialize the LLM with a model file path.
-     * Call this after model download is confirmed complete.
-     */
     suspend fun initializeModel(modelPath: String) = withContext(Dispatchers.IO) {
         if (_state.value is LlmState.Ready) return@withContext
         _state.value = LlmState.Loading
@@ -44,8 +40,6 @@ class LlmInferenceManager @Inject constructor(
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(1024)
-                .setTopK(40)
-                .setTemperature(0.8f)
                 .build()
 
             llmInference = LlmInference.createFromOptions(context, options)
@@ -57,8 +51,7 @@ class LlmInferenceManager @Inject constructor(
     }
 
     /**
-     * Streaming via callback. Use this for true token-by-token streaming.
-     * Opens a new temporary session to avoid corrupting the persistent session.
+     * Streaming via callback. Prompt is enqueued with addQueryChunk before generate.
      */
     fun generateStreamingWithCallback(
         prompt: String,
@@ -67,9 +60,10 @@ class LlmInferenceManager @Inject constructor(
         val session = currentSession ?: return
 
         try {
-            session.generateResponseAsync(prompt) { partialResult, isDone ->
-                val cleaned = RavenPromptBuilder.cleanResponse(partialResult)
-                onToken(cleaned, isDone)
+            session.addQueryChunk(prompt)
+            session.generateResponseAsync { partialResult: String?, isDone: Boolean? ->
+                val cleaned = RavenPromptBuilder.cleanResponse(partialResult ?: "")
+                onToken(cleaned, isDone ?: false)
             }
         } catch (e: Exception) {
             onToken("Error: ${e.message}", true)
@@ -77,21 +71,19 @@ class LlmInferenceManager @Inject constructor(
     }
 
     /**
-     * Synchronous generation — simpler path, used as reliable fallback.
+     * Synchronous generation. Prompt is enqueued with addQueryChunk before generate.
      */
     suspend fun generateSync(prompt: String): String = withContext(Dispatchers.IO) {
         val session = currentSession ?: return@withContext "Model not ready."
         try {
-            val result = session.generateResponse(prompt)
+            session.addQueryChunk(prompt)
+            val result = session.generateResponse()
             RavenPromptBuilder.cleanResponse(result)
         } catch (e: Exception) {
             "I couldn't process that. Please try again."
         }
     }
 
-    /**
-     * Resets the conversation session (clears in-session multi-turn context).
-     */
     fun resetSession() {
         currentSession?.close()
         openNewSession()
@@ -105,9 +97,8 @@ class LlmInferenceManager @Inject constructor(
                     .setTopK(40)
                     .setTemperature(0.8f)
                     .build()
-                LlmInferenceSession.createFromLlmInference(inference, sessionOptions)
+                inference.createSession(sessionOptions)
             } catch (_: Exception) {
-                // Some versions don't support session options — use default
                 null
             }
         }
