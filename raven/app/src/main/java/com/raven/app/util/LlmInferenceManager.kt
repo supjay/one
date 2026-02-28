@@ -97,7 +97,7 @@ class LlmInferenceManager @Inject constructor(
                     .setTopK(40)
                     .setTemperature(0.8f)
                     .build()
-                inference.createSession(sessionOptions)
+                LlmInferenceSession.createFromOptions(inference, sessionOptions)
             } catch (_: Exception) {
                 null
             }
